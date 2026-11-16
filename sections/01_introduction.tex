@@ -38,33 +38,42 @@ biology of the pathogen and the genetic resilience of the variety.
 Ensemble machine learning methods and XGBoost~\cite{chen2016xgb} in
 particular, have demonstrated strong capability in capturing these
 non-linear relationships between climate and yield~\cite{ml_yield_review}.
-What remains missing from the literature is a formalised framework in
-which the output of a visual disease detector is used as input to a yield
-prediction model.
-This paper takes a first step toward addressing that gap.
 
-We describe an integrated three-stage framework linking a visual
-disease classifier, a severity-aware disease detector and a yield
-prediction model. Stages~1 and 2 operate on individual Bangladeshi leaf
-images, whereas Stage~3 uses FAO country-year yield records that are
-not paired with those images by field, season or location. Stage~3's
-connection to Stages~1 and 2 is therefore a conceptual demonstration of
-architectural viability, not a validated, matched pipeline:
-\begin{enumerate}[noitemsep]
-  \item a comprehensive benchmark of 38 pretrained CNN architectures
-    to select the strongest disease classifier, supplemented by Grad-CAM
-    explainability and error analysis;
-  \item a severity-aware Faster RCNN detector trained on annotations
-    generated automatically by Grounding DINO~\cite{groundingdino},
-    which includes a learned severity head that predicts lesion
-    coverage ratios directly from region-of-interest features,
-    eliminating the bottleneck of manual bounding box labelling; and
-  \item a yield-prediction stage that accepts dynamic severity scores
-    derived from Faster RCNN bounding box outputs and CNN softmax
-    confidence, together with a country-held-out audit, ablation and
-    baseline comparison showing what the available FAO data can and
-    cannot support.
-\end{enumerate}
+\noindent\textbf{Research gap.} Work on plant disease images and work on
+yield prediction have largely developed separately: image studies stop at
+the disease label or the lesion location, and yield models rarely use
+image-derived disease information. Two further gaps affect how far
+reported results can be trusted. First, we know of no study that
+benchmarks all major CNN families on one crop disease dataset under a
+single protocol. Second, when augmented copies of one photograph are
+stored as separate files, splits based on filenames can place copies on
+both sides of a split and inflate test accuracy; this was the case in our
+dataset, and we checked it with image hashing.
+
+\noindent\textbf{Problem statement.} How well can pretrained CNNs and a
+pseudo-labelled detector recognise and localise crop diseases when
+duplicated images are controlled for, and what can a vision-derived
+severity score contribute to yield prediction when image and yield data
+are not paired?
+
+\noindent\textbf{Objectives.} We pursue four objectives: (O1) benchmark
+pretrained CNNs for crop disease classification under a leakage-audited
+protocol; (O2) build a severity-aware detector without manual box
+labelling; (O3) show how a vision-derived severity score could feed a
+yield model and what the available data can support; and (O4) audit the
+data for duplicate leakage and report its effect.
+
+\noindent\textbf{Approach and scope.} We build a three-stage
+proof-of-concept pipeline: Stage~1 classifies diseases from leaf images,
+Stage~2 localises lesions with a severity-aware Faster RCNN, and Stage~3
+passes a severity score to a yield model. Stages~1 and~2 use individual
+Bangladeshi leaf images, whereas Stage~3 uses FAO country-year yield
+records that are not paired with those images by field, season or
+location. Stage~3 is therefore a demonstration of data flow, not a
+validated image-to-yield system. The same pipeline could be applied to
+matched data, with climate, yield and disease images from the same
+fields and seasons, and Section~\ref{sec:stage3} describes what that
+would require.
 
 \noindent\textbf{What is new.} Each building block used here (CNN
 transfer learning, Faster RCNN, XGBoost) is established; novelty is
@@ -74,9 +83,9 @@ a continuous lesion-coverage score jointly with boxes and classes,
 rather than only class and location; (b) a zero-shot Grounding DINO
 annotation pipeline that scales a 280-image manual set to 2,256 images
 with no further manual labelling, together with a quantitative
-characterisation of that pipeline's failure mode; (c) an explicit,
-if conceptual, link from a vision-derived severity signal to a yield
-model; and (d) a duplicate audit based on exact-file and perceptual hashing, which shows that filename-based grouping of augmented copies leaves substantial leakage on this dataset (about 30\% of files are exact duplicates of another file), together with a de-duplicated evaluation protocol that does not require retraining.
+characterisation of that pipeline's failure mode; (c) a proof-of-concept
+link from a vision-derived severity signal to a yield
+model, which we do not validate; and (d) a duplicate audit based on exact-file and perceptual hashing, which shows that filename-based grouping of augmented copies leaves substantial leakage on this dataset (about 30\% of files are exact duplicates of another file), together with a de-duplicated evaluation protocol that does not require retraining.
 
 \noindent\textbf{Primary contributions:}
 \begin{itemize}[noitemsep]
@@ -86,22 +95,19 @@ model; and (d) a duplicate audit based on exact-file and perceptual hashing, whi
     2,256 images with no additional manual effort, with annotation
     quality quantitatively validated (mean IoU = 0.389).
   \item A \textbf{severity-aware Faster RCNN} model, trained and
-    evaluated on a filename-grouped detection split,
-    reaching mAP@0.5 = 49.3\% on the held-out validation set,
+    evaluated on a filename-grouped, hash-audited detection split
+    (6 of 406 validation images duplicated), reaching mAP@0.5 = 49.3\% on the held-out validation set,
     with a learned severity head achieving
     MAE = 0.2206 on ground-truth lesion coverage ratios.
-  \item A \textbf{dynamic severity computation} that derives
-    per-image severity scores from Faster RCNN lesion bounding box
-    areas and EfficientNetV2S softmax confidence, used as an XGBoost
-    input feature at inference time (a conceptual demonstration, since
-    the yield records are not paired with the images).
   \item Grad-CAM heatmaps confirming that ConvNeXtLarge (rank 2 of 38 and statistically tied with the best model) focuses on disease-relevant leaf tissue.
-  \item A \textbf{country-held-out audit of the yield stage} (a
-    negative result): because the training severity is a fixed per-crop
-    constant, it carries no signal beyond crop identity, and with
-    countries held out XGBoost (R\textsuperscript{2} = 0.64) does not
-    outperform a crop-mean baseline (0.64); the R\textsuperscript{2} of
-    0.97 obtained under a random row split is inflated by country
-    overlap.
 \end{itemize}
 
+\noindent\textbf{Proof of concept (Stage~3).} A dynamic severity score
+computed from Faster RCNN box areas and CNN softmax confidence is passed to
+an XGBoost yield model. Because the yield records are not paired with the
+images, this demonstrates data flow only. A country-held-out audit gives a
+negative result: severity is a fixed per-crop constant in training, so it
+carries no signal beyond crop identity, and with countries held out XGBoost
+(R\textsuperscript{2} = 0.64) does not outperform a crop-mean baseline
+(0.64); the R\textsuperscript{2} of 0.97 under a random row split is
+inflated by country overlap.
