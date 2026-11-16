@@ -73,8 +73,9 @@ To our knowledge, no prior study has benchmarked all major CNN
 families on a single diverse crop disease dataset under a unified
 experimental protocol.
 More critically, the connection between a visual disease classifier
-and a downstream yield prediction model has not been formalised or
-tested as an integrated pipeline.
+and a downstream yield prediction model has not, to our knowledge, been
+formalised or tested with matched data; we sketch such a link as a
+proof of concept but do not validate it.
 
 \subsection{Automated Annotation}
 
@@ -106,15 +107,14 @@ information with yield prediction in a single framework; we do not claim a
 validated image-to-yield system, since our yield records are not paired
 with the leaf images.
 
-\subsection{Integrated Approaches}
+\subsection{Combining Vision and Yield Models}
 \label{sec:integrated}
 
 Several groups have combined process-based crop simulation with
 machine learning to improve yield forecasting under climate
 change~\cite{hybrid_yield}.
-Our work takes this integration further by linking the outputs of a
-vision-based disease detector directly to the yield prediction step,
-forming a three-stage image-to-severity-to-yield framework, although the
-disease imagery and yield records are not currently paired by field, season
-or location.
-
+We take a first, conceptual step in a different direction: passing the
+output of a vision-based disease detector to a yield model, forming a
+three-stage image-to-severity-to-yield pipeline. The disease imagery and
+yield records are not currently paired by field, season or location, so
+we do not validate this link.
