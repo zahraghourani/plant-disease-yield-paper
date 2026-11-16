@@ -1,0 +1,28 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented a proof-of-concept three-stage pipeline linking disease classification, severity-aware localisation and yield modelling. We set out to (O1) benchmark pretrained CNNs for crop disease classification under a leakage-audited protocol, (O2) build a severity-aware detector without manual box labelling, (O3) show how a vision-derived severity score could feed a yield model and what the available data can support, and (O4) audit the data for duplicate leakage and report its effect. The yield records are not paired with the leaf images, so Stage~3 is a conceptual demonstration and not a validated forecasting system.
+
+\textbf{O1, met.} 38 CNNs were benchmarked on the 31,053-image Bangladeshi dataset (15 classes). On the de-duplicated test subset ($n=1{,}774$), seven models are statistically indistinguishable (93.4 to 93.8\%), led by EfficientNetB7 (93.80\%) and ConvNeXtLarge (93.69\%); the deployed EfficientNetV2S (93.35\%) is the fastest among them. Errors concentrate in the rice classes, and Grad-CAM shows the model attends to lesion tissue.
+
+\textbf{O2, partly met.} Grounding DINO grew the labelled set from 280 to 2,256 images without manual effort, and the severity-aware Faster RCNN reaches mAP@0.5 of 49.3\% on a hash-audited split (6 of 406 validation images duplicated) with a severity MAE of 0.2206. However, the pseudo-labels have a mean IoU of 0.389 and systematically under-count lesions, so the severity error against true lesion coverage is unknown and probably larger for small or numerous lesions. A single global threshold and the Potato Healthy confusion are further weaknesses.
+
+\textbf{O3, shown only as a proof of concept.} Severity is a fixed per-crop constant in training, so it carries no signal beyond crop identity. With countries held out, XGBoost reaches R\textsuperscript{2} = 0.64, no better than a crop-mean baseline (0.64); the R\textsuperscript{2} of 0.97 under a random split reflects country overlap. Whether image-derived severity improves yield prediction can only be tested with yield records paired with leaf images.
+
+\textbf{O4, met.} Hash audits showed that about 30\% of the files are exact copies and that filename grouping leaked images across splits, which we handled by evaluating on a de-duplicated subset and reporting the effect on every model.
+
+\textbf{Future work} will investigate:
+(i) matched image-yield data with a field-level aggregation of leaf
+severity, evaluated on held-out locations;
+(ii) retraining the top classifiers on a hash-grouped split with
+repeated seeds or 5-fold cross-validation, and fine-tuning the frozen
+ConvNeXt models;
+(iii) a controlled detection ablation (manual-only, pseudo-only, both,
+with and without the severity head) on an independent manually verified
+test set, with the severity error broken down by lesion size and count;
+(iv) a plant-disease-specific detector for small lesions, with
+per-class thresholds and class rebalancing;
+(v) stratified group splitting so every class has validation samples;
+and
+(vi) scaling Grounding DINO to the full dataset and extending detection
+to stems, fruits and roots.

@@ -1,0 +1,120 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Deep Learning for Plant Disease Detection}
+
+Interest in deep learning for plant disease detection has grown
+substantially over the past decade, progressing from laboratory-scale
+binary classifiers to multi-class systems tested under real field
+conditions.
+
+\subsubsection*{Foundational CNN-based classification.}
+Mohanty et al.~\cite{mohanty2016} were among the first to demonstrate
+that CNNs trained on the PlantVillage dataset could exceed 99\%
+classification accuracy, establishing transfer learning as the
+dominant strategy in the field.
+Geetharamani and Pandian~\cite{geetharamani2019} developed a
+nine-layer deep CNN that achieved precision and recall of 99.47\% and
+99.89\% respectively, though their evaluation was confined to images
+with clean, uniform backgrounds.
+Ferentinos~\cite{ferentinos2018} extended this line of work to
+25 disease types and reported accuracy above 99.5\% under controlled
+studio conditions, but documented a marked performance decline on
+images from actual fields, a gap that remains relevant to any
+real-world deployment.
+
+\subsubsection*{Object detection for disease localisation.}
+Classification identifies whether disease is present but cannot
+pinpoint where. For precision treatment, spatial localisation matters.
+Nawaz et al.~\cite{nawaz2023} developed a VGG-19-based Faster RCNN
+system achieving mAP = 0.87 on PlantVillage, outperforming several
+competing baselines (Fast-RCNN/VGG-16: 0.85; YOLOv3/DarkNet-53:
+0.83; SSD/ResNet-101: 0.81).
+The Regional Proposal Network inside Faster RCNN uses shape, colour,
+and structural cues to localise diseased tissue, which directly
+motivated our adoption of this architecture in Stage~2.
+
+\subsubsection*{EfficientNet for agricultural image analysis.}
+The EfficientNet family~\cite{efficientnet} applies compound scaling
+to width, depth and resolution simultaneously, producing strong
+accuracy-per-parameter in agricultural classification tasks.
+Kadry et al.~\cite{kadry2025} applied variants B0 to B4 to farm insect
+classification, with fused features reaching 98.3\% accuracy.
+Das et al.~\cite{das2024} reviewed the broader CNN literature and
+found that modern families such as ResNet, EfficientNet and ConvNeXt
+consistently outperform hand-crafted feature approaches under variable
+colour and illumination.
+
+\subsubsection*{Explainability.}
+Grad-CAM~\cite{selvaraju2017} produces coarse localisation maps from
+the gradients flowing into the last convolutional layer, and SHAP~\cite{lundberg2017}
+attributes a model's output to its input features using Shapley
+values. In plant pathology, such tools matter because a classifier
+that reaches high accuracy by attending to background, leaf edges or
+acquisition artefacts will fail in the field; Argüeso et
+al.~\cite{arguesoa2020}, for example, studied exactly this gap between
+laboratory and field imagery. We use Grad-CAM to inspect the
+classifier's evidence and SHAP to audit the yield model.
+
+\subsubsection*{Transformer-based and hybrid approaches.}
+Vision Transformers~\cite{dosovitskiy2021} and hierarchical variants
+such as Swin~\cite{liu2021swin} have become strong alternatives to
+CNNs on large benchmarks, typically relying on large-scale
+pre-training. Our benchmark is restricted to the CNN architectures available in the
+TensorFlow 2.10 Keras applications library, trained with a shared head,
+optimiser and augmentation, with the exceptions described in
+Section~\ref{sec:training}. This excludes transformers and also more recent
+CNNs such as ConvNeXt V2, which are natural extensions left to future work. Hybrid frameworks
+that combine learned and process-based components for yield
+prediction are discussed in Section~\ref{sec:integrated}.
+
+\subsubsection*{Remaining gaps.}
+To our knowledge, no prior study has benchmarked all major CNN
+families on a single diverse crop disease dataset under a unified
+experimental protocol.
+More critically, the connection between a visual disease classifier
+and a downstream yield prediction model has not been formalised or
+tested as an integrated pipeline.
+
+\subsection{Automated Annotation}
+
+Generating bounding box annotations at scale is one of the primary
+bottlenecks in building plant pathology detection datasets.
+Nawaz et al.~\cite{nawaz2023} relied on LabelImg for manual
+annotation, a process requiring domain expertise that is difficult to
+scale beyond a few hundred images.
+Grounding DINO~\cite{groundingdino} provides a practical alternative,
+localising objects described only in plain text with no labelled
+training examples required.
+Liu et al.~\cite{liu2019pestnet} and Dewari et
+al.~\cite{dewari2022} both identified annotation volume as the
+principal limiting factor in agricultural detection, motivating our
+use of Grounding DINO to expand the annotated set from 280 to 2,256
+images without any manual effort.
+
+\subsection{Crop Yield Prediction}
+
+Ensemble regressors such as XGBoost and Random Forest have
+consistently outperformed linear methods on crop yield prediction
+tasks involving complex climate-yield
+interactions~\cite{ml_yield_review}.
+A recurring finding in the literature is that incorporating disease
+incidence data into yield models can reduce prediction error by as
+much as 18\%~\cite{disease_yield_integration}.
+To our knowledge, prior work has rarely combined image-derived disease
+information with yield prediction in a single framework; we do not claim a
+validated image-to-yield system, since our yield records are not paired
+with the leaf images.
+
+\subsection{Integrated Approaches}
+\label{sec:integrated}
+
+Several groups have combined process-based crop simulation with
+machine learning to improve yield forecasting under climate
+change~\cite{hybrid_yield}.
+Our work takes this integration further by linking the outputs of a
+vision-based disease detector directly to the yield prediction step,
+forming a three-stage image-to-severity-to-yield framework, although the
+disease imagery and yield records are not currently paired by field, season
+or location.
+

@@ -1,0 +1,107 @@
+\section{Introduction}
+\label{sec:intro}
+
+Crop losses attributable to plant disease represent a persistent and
+costly challenge for agricultural systems around the world.
+The Food and Agriculture Organization of the United Nations estimates
+that plant diseases destroy up to 40\% of all food crops
+annually~\cite{fao2050}, a figure that translates into food insecurity,
+economic hardship and avoidable environmental damage from reactive
+pesticide use.
+For the billions of people who depend on corn, potato, rice and wheat
+as dietary staples, robust early detection combined with a reliable
+estimate of how much of the harvest will be affected is among the
+most consequential problems that modern data-driven methods can help
+address.
+
+Traditional disease surveillance has long depended on trained
+agronomists walking through fields and inspecting individual leaves.
+The approach is knowledgeable but inherently limited in scale: it is
+time-consuming, costly and varies across observers. More critically,
+visible symptoms often appear only after an infection has already
+spread beyond economically treatable levels~\cite{nawaz2023}.
+Convolutional Neural Networks (CNNs) have substantially changed what
+is achievable in this space, processing thousands of images per hour
+and identifying textural and chromatic disease indicators with
+consistent accuracy regardless of time of day or observer
+fatigue~\cite{das2024}.
+Architectures such as Faster RCNN push this further by localising the
+exact tissue regions that are affected, information that is essential
+for spatially targeted treatment rather than blanket chemical
+application.
+
+Knowing the disease identity is only part of what a farmer
+needs. The harder downstream question is quantitative: how much of the
+harvest will actually be lost? The answer is shaped by climate
+variables including temperature, rainfall and humidity interacting with the
+biology of the pathogen and the genetic resilience of the variety.
+Ensemble machine learning methods and XGBoost~\cite{chen2016xgb} in
+particular, have demonstrated strong capability in capturing these
+non-linear relationships between climate and yield~\cite{ml_yield_review}.
+What remains missing from the literature is a formalised framework in
+which the output of a visual disease detector is used as input to a yield
+prediction model.
+This paper takes a first step toward addressing that gap.
+
+We describe an integrated three-stage framework linking a visual
+disease classifier, a severity-aware disease detector and a yield
+prediction model. Stages~1 and 2 operate on individual Bangladeshi leaf
+images, whereas Stage~3 uses FAO country-year yield records that are
+not paired with those images by field, season or location. Stage~3's
+connection to Stages~1 and 2 is therefore a conceptual demonstration of
+architectural viability, not a validated, matched pipeline:
+\begin{enumerate}[noitemsep]
+  \item a comprehensive benchmark of 38 pretrained CNN architectures
+    to select the strongest disease classifier, supplemented by Grad-CAM
+    explainability and error analysis;
+  \item a severity-aware Faster RCNN detector trained on annotations
+    generated automatically by Grounding DINO~\cite{groundingdino},
+    which includes a learned severity head that predicts lesion
+    coverage ratios directly from region-of-interest features,
+    eliminating the bottleneck of manual bounding box labelling; and
+  \item a yield-prediction stage that accepts dynamic severity scores
+    derived from Faster RCNN bounding box outputs and CNN softmax
+    confidence, together with a country-held-out audit, ablation and
+    baseline comparison showing what the available FAO data can and
+    cannot support.
+\end{enumerate}
+
+\noindent\textbf{What is new.} Each building block used here (CNN
+transfer learning, Faster RCNN, XGBoost) is established; novelty is
+not claimed from scale. The contribution lies in four specific
+elements: (a) a severity-aware Faster RCNN whose learned head predicts
+a continuous lesion-coverage score jointly with boxes and classes,
+rather than only class and location; (b) a zero-shot Grounding DINO
+annotation pipeline that scales a 280-image manual set to 2,256 images
+with no further manual labelling, together with a quantitative
+characterisation of that pipeline's failure mode; (c) an explicit,
+if conceptual, link from a vision-derived severity signal to a yield
+model; and (d) a duplicate audit based on exact-file and perceptual hashing, which shows that filename-based grouping of augmented copies leaves substantial leakage on this dataset (about 30\% of files are exact duplicates of another file), together with a de-duplicated evaluation protocol that does not require retraining.
+
+\noindent\textbf{Primary contributions:}
+\begin{itemize}[noitemsep]
+  \item A benchmark of 38 CNN architectures across nine model families on the 31,053-image Bangladeshi dataset (15 classes, including Corn Gray Leaf Spot), evaluated on a de-duplicated test subset ($n=1{,}774$) after an audit showed that filename-based grouping had not prevented duplicate leakage. Seven models (EfficientNetB7, ConvNeXtLarge, EfficientNetB4, ConvNeXtXLarge, EfficientNetB5, EfficientNetV2M and EfficientNetV2S; 93.4 to 93.8\%) are statistically indistinguishable, and the compact EfficientNetV2S is a deployment choice within this group.
+  \item A scalable \textbf{zero-shot auto-annotation pipeline} using
+    Grounding DINO that grows the annotated training set from 280 to
+    2,256 images with no additional manual effort, with annotation
+    quality quantitatively validated (mean IoU = 0.389).
+  \item A \textbf{severity-aware Faster RCNN} model, trained and
+    evaluated on a filename-grouped detection split,
+    reaching mAP@0.5 = 49.3\% on the held-out validation set,
+    with a learned severity head achieving
+    MAE = 0.2206 on ground-truth lesion coverage ratios.
+  \item A \textbf{dynamic severity computation} that derives
+    per-image severity scores from Faster RCNN lesion bounding box
+    areas and EfficientNetV2S softmax confidence, used as an XGBoost
+    input feature at inference time (a conceptual demonstration, since
+    the yield records are not paired with the images).
+  \item Grad-CAM heatmaps confirming that ConvNeXtLarge (rank 2 of 38 and statistically tied with the best model) focuses on disease-relevant leaf tissue.
+  \item A \textbf{country-held-out audit of the yield stage} (a
+    negative result): because the training severity is a fixed per-crop
+    constant, it carries no signal beyond crop identity, and with
+    countries held out XGBoost (R\textsuperscript{2} = 0.64) does not
+    outperform a crop-mean baseline (0.64); the R\textsuperscript{2} of
+    0.97 obtained under a random row split is inflated by country
+    overlap.
+\end{itemize}
+

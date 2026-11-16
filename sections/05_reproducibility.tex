@@ -1,0 +1,47 @@
+\section{Reproducibility and Implementation Details}
+
+All experiments were run on a workstation equipped with an
+NVIDIA RTX A4500 GPU (20\,GB VRAM), CUDA 11.2 and cuDNN 8.1.
+CNN classification used TensorFlow 2.10.0; Faster RCNN used
+PyTorch 2.7.1 (CUDA 11.8) with the matching torchvision release.
+
+\textbf{Classification.}
+Batch size: 16. Optimiser: Adam, learning rate $10^{-4}$,
+gradient clipping norm = 1.0.
+Augmentation: rotation $\pm30^\circ$, width/height shift 0.2,
+horizontal and vertical flip, zoom 0.2, shear 0.2,
+brightness 0.8 to 1.2, nearest-fill mode.
+Early stopping on validation loss (patience 10); ReduceLROnPlateau on
+validation loss (factor 0.5, patience 5); phase 1: frozen backbone, up to
+25 epochs; phase 2 (33 models): last 10 backbone layers unfrozen, Adam
+learning rate $10^{-5}$, up to 50 epochs in total; the five remaining
+models were trained in phase 1 only; random seed = 42.
+Train/val/test split: stratified by class, seed = 42, grouped by filename base. Evaluation uses a de-duplicated test subset built with exact-file (MD5) and perceptual-hash (256-bit difference hash, Hamming distance $\le16$, flips and rotations) matching; the audit and scoring scripts (\texttt{hash\_check.py}, \texttt{clean\_test\_subset.py}, \texttt{score\_clean\_subset.py}) are provided in the repository.
+Per-model training times and epochs actually trained are recorded in the
+supplementary per-model results files.
+
+\textbf{Detection and severity head.}
+Batch size: 4. Optimiser: SGD, learning rate 0.005, momentum 0.9,
+weight decay $5\!\times\!10^{-4}$.
+Step LR scheduler (step 2, $\gamma = 0.1$); 5 epochs with frozen
+backbone; mixed-precision (fp16) on GPU; seed = 42.
+Severity head: two-layer MLP (1,024 $\to$ 256 $\to$ 1),
+MSE loss against ground-truth lesion area ratios.
+Group-aware, fixed-seed 80/20 split (1,850 train / 406 validation
+images). Severity head validation MAE = 0.2206.
+
+\textbf{Yield prediction.}
+XGBoost and Random Forest: 100 estimators, \texttt{random\_state} = 42;
+Linear Regression with default settings. Evaluation: random 80/20 row
+split (seed 42) and country-held-out 5-fold \texttt{GroupKFold} over 101
+countries; crop-mean baseline. SHAP used as a diagnostic.
+
+\textbf{Dynamic severity.}
+EfficientNetV2S weights from Stage~1 training.
+Detection confidence threshold: 0.4; only disease-category boxes are
+summed, as a pixel-union area. 15 images per class from \texttt{detection\_data/images/}.
+
+\textbf{Datasets.}
+Disease dataset: \url{https://www.kaggle.com/datasets/nafishamoin/bangladeshi-crops-disease-dataset}.\\
+Yield dataset: \url{https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset}.
+

@@ -1,0 +1,87 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[top=2.2cm,bottom=2.2cm,left=2.2cm,right=2.2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl} % lets long URLs break across lines (loads after hyperref)
+\setlength{\emergencystretch}{3em} % avoids slightly overfull lines
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\definecolor{toprow}{RGB}{198,239,206}
+\definecolor{secrow}{RGB}{197,224,243}
+\definecolor{trdrow}{RGB}{255,235,156}
+\definecolor{hdrblue}{RGB}{46,64,87}
+\definecolor{sigred}{RGB}{154,0,0}
+
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\newcommand{\inst}[1]{\textsuperscript{\normalfont\small#1}}
+\newcommand{\authorrunning}[1]{}
+\newcommand{\keywords}[1]{\par\smallskip\noindent\small\textbf{Keywords:}\enspace#1}
+\makeatletter
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+  {-8\p@ \@plus -4\p@}{-0.5em}{\normalfont\normalsize\bfseries}}
+\makeatother
+
+\onehalfspacing
+
+\begin{document}
+
+\title{\textbf{An Integrated Deep Learning and Machine Learning Framework\\
+for Plant Disease Detection and Crop Yield Prediction}}
+
+\author{
+  Zahra El Ghourani\inst{1} \quad
+  Sireen Hammoud\inst{1} \quad
+  Tala Mezher\inst{1} \quad
+  Seifedine Kadry\inst{1,2}\\[4pt]
+  \small\inst{1}Department of Computer Science and Mathematics,
+  Lebanese American University, Beirut, Lebanon\\
+  \small\texttt{\{zahra.elghourani, sireen.hammoud, tala.mezher\}@lau.edu}\\[2pt]
+  \small\inst{2}Department of Applied Data Science,
+  Noroff University College, Kristiansand, Norway\\
+  \small\texttt{seifedine.kadry@lau.edu.lb}
+}
+\date{}
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+Plant diseases threaten food security, and early detection paired with yield
+estimation supports agricultural decision-making. We present a three-stage
+framework combining CNN-based disease classification, severity-aware disease
+localisation and machine-learning yield prediction. In Stage 1, 38 pretrained CNNs from nine families were benchmarked on the 31,053-image Bangladeshi Crops Disease Dataset (15 classes). A post-hoc audit with exact-file and perceptual hashing showed that about 30\% of the files are duplicate copies and that filename-based grouping had not kept all copies within one split, so results are reported on a de-duplicated test subset ($n=1{,}774$) without retraining. On this subset seven models, led by EfficientNetB7 (93.80\%) and ConvNeXtLarge (93.69\%), are statistically indistinguishable (accuracy 93.4 to 93.8\%; Holm-adjusted McNemar tests), and the compact EfficientNetV2S (93.35\%), used for deployment, belongs to this group.
+In Stage~2, a severity-aware
+Faster RCNN trained on 2,256 Grounding DINO pseudo-labelled images reached
+mAP@0.5 of 49.3\% on a held-out set; against 280 manual annotations, the
+pseudo-labels had a mean IoU of 0.389, with systematic single-box-per-image
+under-counting. In Stage~3, the yield records are not paired with the images and
+the training severity is a fixed per-crop constant, so this stage is a conceptual
+demonstration; with countries held out, XGBoost reaches R\textsuperscript{2} =
+0.64, no better than a crop-mean baseline (0.64), and severity adds no signal
+beyond crop identity. Grad-CAM heatmaps confirm that the classifier attends to
+disease-relevant leaf regions.
+
+\keywords{Plant Disease Detection \and Faster RCNN \and Transfer
+Learning \and Crop Yield Prediction \and XGBoost \and Precision
+Agriculture \and ConvNeXt \and EfficientNet \and Grounding DINO
+\and Grad-CAM \and SHAP}
+\end{abstract}
