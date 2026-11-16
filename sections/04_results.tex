@@ -322,9 +322,10 @@ Grounding DINO + severity head & 2,256 & \textbf{0.493} & \textbf{0.357}\\
 
 Figure~\ref{fig:annotation} illustrates the Grounding DINO
 annotation pipeline.
-The finding generalises beyond plant disease: zero-shot
-auto-annotation is a viable strategy whenever large labelled datasets
-are prohibitively expensive to build manually.
+Zero-shot auto-annotation is a practical starting point when large
+labelled datasets are too expensive to build manually, but, as
+Section~\ref{sec:detection} shows, its labels still need manual
+verification.
 
 \begin{figure}[!htbp]
 \centering
@@ -369,20 +370,8 @@ Crop-mean baseline                      & 0.6778    & $0.637 \pm 0.095$  & 52,88
 \subsection{Dynamic Severity Validation}
 \label{sec:results_dynamic}
 
-% NOTE: this entire section was recomputed with substantial bug fixes.
-% The computation previously (a) never actually loaded the trained
-% Faster RCNN -- it used a generic, off-the-shelf COCO-pretrained
-% detector instead; (b) used an outdated 14-class list missing
-% Corn Gray Leaf Spot; (c) counted "Healthy"-category boxes as lesion
-% area, inflating healthy-class severity; and (d) summed overlapping
-% boxes from different predicted categories without deduplication,
-% producing lesion ratios exceeding 1.0 (physically impossible). All
-% four issues are fixed below: the actual trained detector is used,
-% the class list is corrected, Healthy/Invalid boxes are excluded from
-% the lesion-area sum, and lesion area is computed as the true pixel
-% union of remaining boxes.
 Applying Equation~\ref{eq:dynamic_severity} to 15 images per class
-from the detection dataset, using the \textbf{actual trained}
+from the detection dataset, using the trained
 severity-aware Faster RCNN and EfficientNetV2S classifier, yielded the
 computed scores in Table~\ref{tab:dynamic_severity}.
 
@@ -403,12 +392,12 @@ computed scores in Table~\ref{tab:dynamic_severity}.
 Corn Common Rust    & 0.35 & 0.0000$^{*}$ & 0.0000\\
 Corn Gray Leaf Spot & n/a$^{\ddagger}$ & 0.1044 & 0.2858\\
 Corn Healthy        & 0.00 & 0.0086 & 0.0331\\
-Corn Leaf Blight    & 0.40 & 0.8570 & 0.1348\\
+Corn Leaf Blight    & 0.40 & 0.8570 & 0.1349\\
 Potato Early Blight & 0.20 & 0.0000$^{\dagger}$ & 0.0000\\
 Potato Healthy      & 0.00 & 0.0006 & 0.0024\\
 Potato Late Blight  & 0.45 & 0.0000$^{\dagger}$ & 0.0000\\
 Rice Brown Spot     & 0.25 & 0.4060 & 0.2112\\
-Rice Healthy        & 0.00 & 0.0648 & 0.1747\\
+Rice Healthy        & 0.00 & 0.0648 & 0.1748\\
 Rice Hispa          & 0.30 & 0.1044 & 0.2359\\
 Rice Leaf Blast     & 0.50 & 0.1728 & 0.1819\\
 Wheat Brown Rust    & 0.35 & 0.4681 & 0.4620\\
@@ -451,16 +440,25 @@ This is a distinct weakness from the small-lesion under-counting
 behaviour discussed in Section~3.3.1, and is noted as a specific
 limitation warranting targeted class rebalancing in future work.
 
-Beyond these two specific findings: Rice Brown Spot (computed 0.406
-vs.\ literature 0.25) and Wheat Brown Rust (computed 0.468 vs.\
-literature 0.35) show the closest overall agreement, supporting the
-detection-based approach for classes with large, clearly defined
-lesions. Rice Hispa and Rice Leaf Blast remain underestimated relative
-to literature, consistent with the Grounding DINO small-lesion
-under-counting behaviour identified in Section~3.3.1.
-Taken together, these findings support the feasibility of
-image-derived severity estimation while identifying a
-plant-disease-specific detector as the key next step.
+Beyond these two findings, agreement with the literature values is mixed.
+Wheat Yellow Rust is closest on average (0.361 against 0.40), followed by
+Wheat Brown Rust (0.468 against 0.35) and Rice Brown Spot (0.406 against
+0.25). For the two wheat classes, however, the standard deviation is about
+0.46, as large as the mean: the detector returns a large box on some images
+and nothing on others (6 and 8 of the 15 images have a non-zero score), so
+agreement of the means should not be read as agreement per image. Corn Leaf
+Blight is strongly overestimated (0.857 against 0.40), because the predicted
+boxes cover most of the leaf, the behaviour described in
+Section~\ref{sec:detection}. Rice Hispa and Rice Leaf Blast are
+underestimated (0.104 against 0.30 and 0.173 against 0.50), consistent with
+the under-counting of small lesions. The identical means for Corn Gray Leaf
+Spot and Rice Hispa (0.1044) are a coincidence: they come from different
+images, with two and three non-zero scores respectively. Each mean rests on
+15 images, which can include augmented copies of the same photograph, so
+these values are indicative only. Taken together, the results show that a
+severity score can be computed from the detector's output, but not yet that
+it is accurate; a plant-disease-specific detector and manually verified
+lesion annotations are the next steps.
 
 \subsection{PlantVillage Overlap Check}\label{sec:plantvillage}
 We evaluated ConvNeXtLarge on the potato images of the publicly available PlantVillage dataset (2,152 images; the PlantVillage download available to us contained only Pepper, Potato and Tomato crops). Using the model's full 15-class output, it classified 99.91\% of them correctly, with two errors (both Potato Late Blight predicted as Potato Healthy). This is not independent validation. A hash comparison showed that every one of these 2,152 images is also present in our dataset: 4,304 files in the potato classes are byte-identical to the 2,152 PlantVillage potato images. The potato classes of the Bangladeshi dataset therefore appear to be PlantVillage images, which, together with the duplicate analysis in Section~\ref{sec:split}, helps explain why they are classified almost perfectly. Many corn files also carry PlantVillage-style names (for example \texttt{RS\_Rust 1576}); we could not test this because the available PlantVillage download did not include corn. Independent validation requires a dataset with no shared provenance and is left to future work.
@@ -582,8 +580,8 @@ The limitations below fall into two groups. Those in the first group prevent the
 \textbf{A. Limitations that prevent full validation}
 \begin{enumerate}[noitemsep]
   \item \textbf{Unmatched datasets.} FAO yield records and Bangladeshi
-    leaf images are not matched by location or season. The pipeline is
-    validated on proxy data rather than a properly paired dataset.
+    leaf images are not matched by location or season. The yield stage
+    therefore uses proxy data and is not validated.
   \item \textbf{The yield stage shows no skill beyond crop identity.}
     Severity is a fixed per-crop constant in training (three distinct
     values), and with countries held out XGBoost

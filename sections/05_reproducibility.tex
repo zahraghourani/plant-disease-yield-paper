@@ -27,8 +27,8 @@ Step LR scheduler (step 2, $\gamma = 0.1$); 5 epochs with frozen
 backbone; mixed-precision (fp16) on GPU; seed = 42.
 Severity head: two-layer MLP (1,024 $\to$ 256 $\to$ 1),
 MSE loss against ground-truth lesion area ratios.
-Group-aware, fixed-seed 80/20 split (1,850 train / 406 validation
-images). Severity head validation MAE = 0.2206.
+Group-aware, fixed-seed, hash-audited 80/20 split (1,850 train / 406 validation)
+Severity head validation MAE = 0.2206.
 
 \textbf{Yield prediction.}
 XGBoost and Random Forest: 100 estimators, \texttt{random\_state} = 42;

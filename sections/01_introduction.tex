@@ -93,12 +93,13 @@ model, which we do not validate; and (d) a duplicate audit based on exact-file a
   \item A scalable \textbf{zero-shot auto-annotation pipeline} using
     Grounding DINO that grows the annotated training set from 280 to
     2,256 images with no additional manual effort, with annotation
-    quality quantitatively validated (mean IoU = 0.389).
+    quality quantified against manual annotations (mean IoU = 0.389).
   \item A \textbf{severity-aware Faster RCNN} model, trained and
     evaluated on a filename-grouped, hash-audited detection split
     (6 of 406 validation images duplicated), reaching mAP@0.5 = 49.3\% on the held-out validation set,
     with a learned severity head achieving
-    MAE = 0.2206 on ground-truth lesion coverage ratios.
+    
+    MAE = 0.2206 against Grounding DINO coverage targets.
   \item Grad-CAM heatmaps confirming that ConvNeXtLarge (rank 2 of 38 and statistically tied with the best model) focuses on disease-relevant leaf tissue.
 \end{itemize}
 

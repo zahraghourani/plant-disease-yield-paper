@@ -5,8 +5,8 @@ The proposed framework comprises three interconnected stages:
 (1)~plant disease classification using 38 CNN architectures,
 (2)~disease region localisation using a severity-aware Faster RCNN
 with automated annotation and
-(3)~crop yield prediction using XGBoost with disease severity derived
-from CNN and detection model outputs.
+(3)~as a proof of concept, crop yield prediction using XGBoost with
+disease severity derived from CNN and detection model outputs.
 Figure~\ref{fig:pipeline} illustrates the overall pipeline.
 The deployed classifier is \textbf{EfficientNetV2S}, a compact model (about 81.7\,MB) chosen for edge deployment. On the de-duplicated test subset it reaches 93.35\% accuracy, is statistically indistinguishable from the best model (EfficientNetB7, 93.80\%; Holm-adjusted $p=1.0$), and is the fastest of the seven models in the top group (9.7\,ms per image, batched, versus 10.6 to 34.1\,ms for the others). ConvNeXtLarge (93.69\%) is roughly nine times larger (752.8\,MB).
 
@@ -321,8 +321,6 @@ Rice Hispa           & 0.051 \\
 \end{tabular}
 \end{table}
 
-% VERIFY: the caption below must describe the image pair actually produced by
-% generate_iou_comparison_figure.py (the pair has changed between script versions).
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/iou_comparison_healthy_vs_multilesion.png}
