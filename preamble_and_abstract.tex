@@ -45,8 +45,9 @@
 
 \begin{document}
 
-\title{\textbf{An Integrated Deep Learning and Machine Learning Framework\\
-for Plant Disease Detection and Crop Yield Prediction}}
+\title{\textbf{A Deep Learning and Machine Learning Framework\\
+for Plant Disease Detection and Crop Yield Prediction:\\
+A Proof of Concept}}
 
 \author{
   Zahra El Ghourani\inst{1} \quad
@@ -65,20 +66,7 @@ for Plant Disease Detection and Crop Yield Prediction}}
 \thispagestyle{empty}
 
 \begin{abstract}
-Plant diseases threaten food security, and early detection paired with yield
-estimation supports agricultural decision-making. We present a three-stage
-framework combining CNN-based disease classification, severity-aware disease
-localisation and machine-learning yield prediction. In Stage 1, 38 pretrained CNNs from nine families were benchmarked on the 31,053-image Bangladeshi Crops Disease Dataset (15 classes). A post-hoc audit with exact-file and perceptual hashing showed that about 30\% of the files are duplicate copies and that filename-based grouping had not kept all copies within one split, so results are reported on a de-duplicated test subset ($n=1{,}774$) without retraining. On this subset seven models, led by EfficientNetB7 (93.80\%) and ConvNeXtLarge (93.69\%), are statistically indistinguishable (accuracy 93.4 to 93.8\%; Holm-adjusted McNemar tests), and the compact EfficientNetV2S (93.35\%), used for deployment, belongs to this group.
-In Stage~2, a severity-aware
-Faster RCNN trained on 2,256 Grounding DINO pseudo-labelled images reached
-mAP@0.5 of 49.3\% on a held-out set; against 280 manual annotations, the
-pseudo-labels had a mean IoU of 0.389, with systematic single-box-per-image
-under-counting. In Stage~3, the yield records are not paired with the images and
-the training severity is a fixed per-crop constant, so this stage is a conceptual
-demonstration; with countries held out, XGBoost reaches R\textsuperscript{2} =
-0.64, no better than a crop-mean baseline (0.64), and severity adds no signal
-beyond crop identity. Grad-CAM heatmaps confirm that the classifier attends to
-disease-relevant leaf regions.
+Plant diseases threaten food security, and pairing early disease detection with yield estimation could support agricultural decision-making. Leaf-image datasets and yield records are rarely linked, and image datasets often contain duplicated photographs that can inflate reported accuracy. We study a three-stage proof-of-concept pipeline with four objectives: (O1) benchmark pretrained CNNs for crop disease classification under a leakage-audited protocol, (O2) build a severity-aware detector without manual box labelling, (O3) show how an image-derived severity score could feed a yield model and what the available data support, and (O4) audit the data for duplicate leakage and report its effect. Experiments used one RTX A4500 GPU. In Stage~1, 38 pretrained CNNs were trained on the 31,053-image Bangladeshi Crops Disease Dataset (15 classes). Exact-file and perceptual hashing showed that about 30\% of files are exact copies, so results are reported on a de-duplicated test subset ($n=1{,}774$) without retraining; seven models are statistically tied at 93.4 to 93.8\%, including the compact EfficientNetV2S (93.35\%) used for deployment. In Stage~2, a severity-aware Faster RCNN trained on 2,256 Grounding DINO pseudo-labelled images reached mAP@0.5 of 49.3\% on a hash-audited split; the pseudo-labels agree only partly with 280 manual annotations (mean IoU 0.389), so severity estimates are indicative. Stage~3 is a proof of concept because the FAO yield records are not paired with the images: with countries held out, XGBoost (R\textsuperscript{2} = 0.64) does not beat a crop-mean baseline, and severity adds no signal beyond crop identity. The benchmark and annotation approach are usable now; the yield link needs matched data.
 
 \keywords{Plant Disease Detection \and Faster RCNN \and Transfer
 Learning \and Crop Yield Prediction \and XGBoost \and Precision
